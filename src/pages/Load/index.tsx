@@ -67,7 +67,6 @@ const Load: React.FC = () => {
 
     async function loadLoads () {
       const response = await api.get('/loads')
-      console.log(response.data)
       setLoads(response.data)
     }
 
@@ -108,6 +107,11 @@ const Load: React.FC = () => {
           setShow(true)
           break
         case 'Excluir':
+          if (carryLoads) {
+            setRequest(carryLoads)
+          } else {
+            alert('Não foi possivel carregar as informações da carga.')
+          }
           setShow(true)
           break
         default:
@@ -125,55 +129,101 @@ const Load: React.FC = () => {
       })
     }
 
+    function validateFields () {
+      var retorno = true
+
+      if (request.idCliente === null || request.idCliente === 0) {
+        alert('Selecione um cliente, se não houver nenhum, cadastre.')
+        retorno = false
+      }
+      if (request.dataEntrega === '') {
+        alert('Preencha o campo data de entrega corretamente')
+        retorno = false
+      } else if (request.dataPrevistaEntrega === '') {
+        alert('Preencha o campo data de entrega prevista corretamente')
+        retorno = false
+      } else if (request.peso === 0) {
+        alert('O campo peso tem que ser maior que zero.')
+        retorno = false
+      } else if (request.largura === 0) {
+        alert('O campo largura tem que ser maior que zero.')
+        retorno = false
+      } else if (request.comprimento === 0) {
+        alert('O campo comprimento tem que ser maior que zero.')
+        retorno = false
+      } else if (request.logradouro === '') {
+        alert('Preencha o campo logradouro corretamente')
+        retorno = false
+      } else if (request.altura === 0) {
+        alert('O campo altura tem que ser maior que zero.')
+        retorno = false
+      } else if (request.numero === '') {
+        alert('Preencha o campo numero corretamente')
+        retorno = false
+      } else if (request.bairro === '') {
+        alert('Preencha o campo bairro corretamente')
+        retorno = false
+      } else if (request.estado === '') {
+        alert('Preencha o campo estado corretamente')
+        retorno = false
+      } else if (request.cidade === '') {
+        alert('Preencha o campo cidade corretamente')
+        retorno = false
+      }
+
+      return retorno
+    }
+
     async function handleSubmit () {
       var response = {}
+      var validated = validateFields()
 
-      const addressLoadRequest = {
-        idCarga: request.id,
-        logradouro: request.logradouro,
-        numero: request.numero,
-        bairro: request.bairro,
-        estado: request.estado,
-        cidade: request.cidade
-      }
+      if (validated) {
+        const addressLoadRequest = {
+          idCarga: request.id,
+          logradouro: request.logradouro,
+          numero: request.numero,
+          bairro: request.bairro,
+          estado: request.estado,
+          cidade: request.cidade
+        }
 
-      const loadRequest = {
-        idCliente: request.idCliente,
-        dataEntrega: formatDateToInput(request.dataEntrega),
-        dataPrevistaEntrega: formatDateToInput(request.dataPrevistaEntrega),
-        peso: request.peso,
-        largura: request.largura,
-        altura: request.altura,
-        comprimento: request.comprimento,
-        statusCarga: request.statusCarga
-      }
+        const loadRequest = {
+          idCliente: request.idCliente,
+          dataEntrega: formatDateToInput(request.dataEntrega),
+          dataPrevistaEntrega: formatDateToInput(request.dataPrevistaEntrega),
+          peso: request.peso,
+          largura: request.largura,
+          altura: request.altura,
+          comprimento: request.comprimento,
+          statusCarga: request.statusCarga
+        }
 
-      switch (type) {
-        case 'Incluir':
-          response = await api.post('/loads', loadRequest)
-          if (response) {
-            addressLoadRequest.idCarga = (response as IResponse).data
-            await api.post('/addressLoads', addressLoadRequest)
-            window.location.reload(true)
-          }
-          break
-        case 'Alterar':
-          console.log(loadRequest)
-          response = await api.put(`loads/${idLoad}`, loadRequest)
-          console.log(response)
-          if (response) {
-            await api.put(`addressLoads/${request.idEndereco}`, addressLoadRequest)
-            window.location.reload(true)
-          }
-          break
-        case 'Excluir':
-          response = await api.delete(`addressLoads/${request.idEndereco}`)
-          if (response) {
-            window.location.reload(true)
-          }
-          break
-        default:
-          break
+        switch (type) {
+          case 'Incluir':
+            response = await api.post('/loads', loadRequest)
+            if (response) {
+              addressLoadRequest.idCarga = (response as IResponse).data
+              await api.post('/addressLoads', addressLoadRequest)
+              window.location.reload(true)
+            }
+            break
+          case 'Alterar':
+            response = await api.put(`loads/${idLoad}`, loadRequest)
+            if (response) {
+              await api.put(`addressLoads/${request.idEndereco}`, addressLoadRequest)
+              window.location.reload(true)
+            }
+            break
+          case 'Excluir':
+            response = await api.delete(`addressLoads/${request.idEndereco}`)
+            if (response) {
+              window.location.reload(true)
+            }
+            break
+          default:
+            break
+        }
       }
     }
 
@@ -225,7 +275,7 @@ const Load: React.FC = () => {
                   {
                     clients.length
                       ? clients.map(client => (
-                        <option key={client.id} value={client.id} >{client.nome + ' - ' + client.telefone}</option>
+                        <option selected={(request.idCliente === client.id)} key={client.id} value={client.id} >{client.nome + ' - ' + client.telefone}</option>
                       ))
                       : <option >Nenhum cliente cadastrado</option>
                   }
@@ -237,6 +287,7 @@ const Load: React.FC = () => {
                     name="dataEntrega"
                     value={formatDateToInput(request.dataEntrega)}
                     onChange={(e: ChangeEvent<HTMLInputElement>) => updateRequest(e)}
+                    required={true}
                   />
                 </Form.Group>
                 <Form.Group>
@@ -331,10 +382,10 @@ const Load: React.FC = () => {
                 </Form.Group>
                 <Form.Label>Status</Form.Label>
                 <Form.Control as="select" name="statusCarga" onChange={(e: ChangeEvent<HTMLInputElement>) => updateRequest(e)} >
-                  <option value={0}>CANCELADA</option>
-                  <option value={1}>ENTREGUE</option>
-                  <option value={2}>EM PROCESSAMENTO</option>
-                  <option value={3}>EM TRANSPORTE</option>
+                  <option value={0} selected={(request.statusCarga === 0)}>CANCELADA</option>
+                  <option value={1} selected={(request.statusCarga === 1)}>ENTREGUE</option>
+                  <option value={2} selected={(request.statusCarga === 2)}>EM PROCESSAMENTO</option>
+                  <option value={3} selected={(request.statusCarga === 3)}>EM TRANSPORTE</option>
                 </Form.Control>
               </Form> : <p>Tem certeza que deseja excluir essa carga?</p>
           }

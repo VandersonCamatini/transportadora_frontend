@@ -92,57 +92,89 @@ const Client: React.FC = () => {
   }
 
   function updateRequest (e: ChangeEvent<HTMLInputElement>) {
-    if (e.target.name === 'estado') {
-      // ver com o darlan
-    };
     setRequest({
       ...request,
       [e.target.name]: e.target.value
     })
   }
 
+  function validateFields () {
+    var retorno = true
+
+    if (request.nome === '') {
+      alert('Preencha o campo nome corretamente')
+      retorno = false
+    } else if (request.email === '') {
+      alert('Preencha o campo email corretamente')
+      retorno = false
+    } else if (request.telefone === '' || request.telefone.length > 12) {
+      alert('Preencha o campo telefone corretamente')
+      retorno = false
+    } else if (request.logradouro === '') {
+      alert('Preencha o campo logradouro corretamente')
+      retorno = false
+    } else if (request.numero === '') {
+      alert('Preencha o campo numero corretamente')
+      retorno = false
+    } else if (request.bairro === '') {
+      alert('Preencha o campo bairro corretamente')
+      retorno = false
+    } else if (request.estado === '') {
+      alert('Preencha o campo estado corretamente')
+      retorno = false
+    } else if (request.cidade === '') {
+      alert('Preencha o campo cidade corretamente')
+      retorno = false
+    }
+
+    return retorno
+  }
+
   async function handleSubmit () {
     var response = {}
 
-    const addressClientRequest = {
-      idCliente: request.id,
-      logradouro: request.logradouro,
-      numero: request.numero,
-      bairro: request.bairro,
-      estado: request.estado,
-      cidade: request.cidade
-    }
+    var validated = validateFields()
+    if (validated) {
+      const addressClientRequest = {
+        idCliente: request.id,
+        logradouro: request.logradouro,
+        numero: request.numero,
+        bairro: request.bairro,
+        estado: request.estado,
+        cidade: request.cidade
+      }
 
-    const clientRequest = {
-      nome: request.nome,
-      email: request.email,
-      telefone: request.telefone
-    }
+      const clientRequest = {
+        nome: request.nome,
+        email: request.email,
+        telefone: request.telefone
+      }
 
-    switch (type) {
-      case 'Incluir':
-        response = await api.post('/clients', clientRequest)
-        if (response) {
-          addressClientRequest.idCliente = (response as IResponse).data
-          await api.post('/addressClients', addressClientRequest)
-          window.location.reload(true)
-        }
-        break
-      case 'Alterar':
-        response = await api.put(`clients/${idClient}`, clientRequest)
-        if (response) {
-          await api.put(`addressClients/${request.idEndereco}`, addressClientRequest)
-          window.location.reload(true)
-        }
-        break
-      case 'Excluir':
-        response = await api.delete(`addressClients/${request.idEndereco}`)
-        if (response) {
-          window.location.reload(true)
-        }
-        break
-      default:
-        break
+      switch (type) {
+        case 'Incluir':
+          response = await api.post('/clients', clientRequest)
+          if (response) {
+            addressClientRequest.idCliente = (response as IResponse).data
+            await api.post('/addressClients', addressClientRequest)
+            window.location.reload(true)
+          }
+          break
+        case 'Alterar':
+          response = await api.put(`clients/${idClient}`, clientRequest)
+          if (response) {
+            await api.put(`addressClients/${request.idEndereco}`, addressClientRequest)
+            window.location.reload(true)
+          }
+          break
+        case 'Excluir':
+          response = await api.delete(`addressClients/${request.idEndereco}`)
+          if (response) {
+            window.location.reload(true)
+          }
+          break
+        default:
+          break
+      }
     }
   }
 
