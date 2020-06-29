@@ -26,8 +26,8 @@ const ModalComponent: React.FC<IProps> = (props: IProps) => {
       </Modal.Body>
 
       <Modal.Footer>
-        <Button variant="secondary" onClick={onSubmit}>{confirmLabel || 'Salvar'}</Button>
-        <Button variant="primary" onClick={handleClose}>{cancelLabel || 'Cancelar'} </Button>
+        <Button className="btn btn-danger" onClick={handleClose}>{cancelLabel || 'Cancelar'} </Button>
+        <Button className="btn btn-success" onClick={onSubmit}>{confirmLabel || 'Salvar'}</Button>
       </Modal.Footer>
     </Modal>
   )
